@@ -1,26 +1,30 @@
+/* src/app/globals.css - For Tailwind v4 */
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* React Flow custom styles */
+.react-flow__node {
+  cursor: pointer;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.react-flow__handle {
+  width: 12px;
+  height: 12px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.react-flow__edge-path {
+  stroke-width: 2px;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom scrollbar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background-color: rgb(243 244 246);
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgb(209 213 219);
+  border-radius: 9999px;
 }
