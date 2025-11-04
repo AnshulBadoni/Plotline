@@ -19,7 +19,7 @@ Extend it. Customize it. Make it yours.
 ## 🌟 Why Plotline?
 
 Most tools force you to choose:  
-👉 Easy but limited (like Twine)  
+👉 Easy but technical (like Twine)  
 👉 Powerful but technical (like Unity)  
 
 Plotline bridges the gap:
