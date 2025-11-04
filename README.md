@@ -111,7 +111,7 @@ See CONTRIBUTING.md for guidelines.
 
 ## 📄 License
 
-MIT © [Your Name]  
+MIT © Anshul Badoni  
 Free to use, modify, and distribute — even commercially.
 
 ---
@@ -120,7 +120,6 @@ Free to use, modify, and distribute — even commercially.
 
 Have a bug report, feature request, or just want to share your story?  
 👉 Open an issue at: https://github.com/yourusername/plotline/issues  
-Or tweet @yourhandle
 
 ---
 
