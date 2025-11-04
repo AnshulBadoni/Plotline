@@ -15,7 +15,7 @@ export interface Character {
 export interface Condition {
     character: string;
     attribute: string;
-    operator: '==' | '!=' | '>' | '<' | '>=' | '<=';
+    operator: '==' | '!=' | '>' | '<' | '>=' | '<=' | '+' | '-' | '=';
     value: string;
 }
 
@@ -29,9 +29,27 @@ export interface DialogueBlock {
     dialogues: Dialogue[];
 }
 
+
+export interface StoryImage {
+    conditions: Condition[];
+    url: string[];
+    title: string;
+}
+
+export interface StoryOption {
+    option: string;
+    nextPieceId: number;
+    effects: Condition[];
+    dialogueBlocks: DialogueBlock[];
+    images: StoryImage[];
+    loop: Loop[];
+    showWhen: Condition[];
+}
+
+
 export interface Image {
     conditions: Condition[];
-    url: string;
+    url: string[];
     title: string;
 }
 
@@ -74,3 +92,60 @@ export type NodeData = StoryNodeData;
 export interface StoryExport {
     story: StoryNodeData[][];
 }
+
+
+export interface StoryPiece {
+    id: number;
+    title: string;
+    randomEvent?: number;
+    dialogueBlocks: DialogueBlock[];
+    images: StoryImage[];
+    options: StoryOption[];
+    nextStoryPiece: number;
+}
+
+export interface GameState {
+    currentStoryId: number;
+    currentDialogueIndex: number;
+    currentImageIndex: number;
+    showOptions: boolean;
+    showOptionDialogue: boolean;
+    selectedOption: StoryOption | null;
+    currentOptionDialogueIndex: number;
+    characterStats: Record<string, Record<string, string>>;
+    selectedImageUrls: string[];
+    usedOptions: Set<string>;
+    suppressDefaultDialogue: boolean;
+    storyRandom: number;
+}
+
+export interface SavedGame {
+    currentStoryId: number;
+    currentDialogueIndex: number;
+    currentImageIndex: number;
+    showOptions: boolean;
+    showOptionDialogue: boolean;
+    selectedOption: StoryOption | null;
+    currentOptionDialogueIndex: number;
+    characterStats: Record<string, Record<string, string>>;
+    selectedImageUrls: string[];
+    usedOptions: string[]; // 👈 Array for JSON serialization
+    suppressDefaultDialogue: boolean;
+    storyRandom: number;
+    timestamp: number;
+    history: any[];
+}
+
+export type GameAction =
+    | { type: 'NEXT_DIALOGUE' }
+    | { type: 'NEXT_IMAGE' }
+    | { type: 'SHOW_OPTIONS' }
+    | { type: 'SELECT_OPTION'; payload: StoryOption }
+    | { type: 'COMPLETE_OPTION_DIALOGUE' }
+    | { type: 'MOVE_TO_STORY'; payload: number }
+    | { type: 'APPLY_EFFECTS'; payload: Condition[] }
+    | { type: 'SET_IMAGE_URLS'; payload: string[] }
+    | { type: 'RESET_FOR_NEW_PIECE' }
+    | { type: 'SUPPRESS_DEFAULT_DIALOGUE'; payload: boolean }
+    | { type: 'LOAD_STATE'; payload: GameState }
+    | { type: 'SET_RANDOM'; payload: number };
