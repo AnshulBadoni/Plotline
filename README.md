@@ -119,7 +119,7 @@ Free to use, modify, and distribute — even commercially.
 ## 💬 Feedback? Ideas? Need Help?
 
 Have a bug report, feature request, or just want to share your story?  
-👉 Open an issue at: https://github.com/yourusername/plotline/issues  
+👉 Open an issue at: https://github.com/AnshulBadoni/plotline/issues  
 
 ---
 
