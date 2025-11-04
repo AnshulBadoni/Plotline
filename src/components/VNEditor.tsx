@@ -36,7 +36,7 @@ const VNEditor: React.FC = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { selectedNode, setSelectedNode } = useVNStore();
 
-  const { currentStoryId, getCurrentStory, updateStory, stories, setCurrentStoryId, addStory } = useStoryManagement();
+  const { currentStoryId, getCurrentStory, updateStory, stories, setCurrentStory, addStory } = useStoryManagement();
 
   // Import modal state
   const [showImportModal, setShowImportModal] = useState(false);
@@ -49,7 +49,7 @@ const VNEditor: React.FC = () => {
   // Load story when selected
   useEffect(() => {
     const currentStory = getCurrentStory();
-    if (currentStory && currentStory.story[0]) {
+    if (currentStory && currentStory.story && Array.isArray(currentStory.story[0])) {
       const loadedNodes: Node<StoryNodeData>[] = currentStory.story[0].map((nodeData: StoryNodeData, index: number) => ({
         id: `node-${nodeData.id}`,
         type: 'storyNode',
@@ -57,6 +57,9 @@ const VNEditor: React.FC = () => {
         data: nodeData,
       }));
       setNodes(loadedNodes);
+    } else {
+      // Initialize with empty nodes if story structure is invalid or empty
+      setNodes([]);
     }
   }, [currentStoryId]);
 
@@ -237,7 +240,7 @@ const VNEditor: React.FC = () => {
     };
 
     addStory(newStory);
-    setCurrentStoryId(newStoryId);
+    setCurrentStory(newStoryId);
     setShowImportModal(false);
     setImportData(null);
     setConflictingStory(null);
@@ -249,7 +252,7 @@ const VNEditor: React.FC = () => {
     if (conflictingStory && newStoryName.toLowerCase() === conflictingStory.metadata.title.toLowerCase()) {
       // Overwrite existing story
       updateStory(conflictingStory.metadata.id, importData.story);
-      setCurrentStoryId(conflictingStory.metadata.id);
+      setCurrentStory(conflictingStory.metadata.id);
       alert(`Story "${conflictingStory.metadata.title}" has been overwritten!`);
     } else {
       // Import with new name
@@ -416,7 +419,7 @@ const VNEditor: React.FC = () => {
                 {Object.values(stories).map((storyData: any) => (
                   <button
                     key={storyData.metadata.id}
-                    onClick={() => setCurrentStoryId(storyData.metadata.id)}
+                    onClick={() => setCurrentStory(storyData.metadata.id)}
                     className="group bg-black border-2 border-zinc-800 hover:border-zinc-700 rounded-xl p-6 transition-all hover:bg-zinc-800/50 hover:scale-105 text-left"
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -428,7 +431,7 @@ const VNEditor: React.FC = () => {
                           {storyData.metadata.description || 'No description available'}
                         </p>
                       </div>
-                      <Edit3 className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0 ml-3" />
+                      <Edit3 className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0 ml-3" />
                     </div>
 
                     <div className="flex items-center gap-4 text-xs text-zinc-600">
@@ -454,7 +457,7 @@ const VNEditor: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 mb-8">
+              <div className="text-center py-4 mb-8">
                 <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto mb-6 border border-zinc-800">
                   <Layers className="w-10 h-10 text-zinc-600" />
                 </div>
@@ -463,7 +466,8 @@ const VNEditor: React.FC = () => {
               </div>
             )}
 
-            <div className="text-center">
+
+            <div className="text-center flex items-center justify-center">
               <StoryManager />
             </div>
           </div>

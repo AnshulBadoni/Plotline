@@ -315,7 +315,10 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
 
     const addOptionImage = (optionIndex: number) => {
         const option = { ...formData.options[optionIndex] };
-        option.images = [...(option.images || []), { conditions: [], url: '', title: '' }];
+        option.images = [
+            ...(option.images || []),
+            { urls: [''], title: '', conditions: [] }
+        ];
         updateOption(optionIndex, option);
     };
 
@@ -352,7 +355,14 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
     };
 
     const addImage = () => {
-        handleChange('images', [...formData.images, { url: '', title: '', conditions: [] }]);
+        handleChange('images', [
+            ...formData.images,
+            {
+                urls: [''],
+                title: '',
+                conditions: []
+            }
+        ]);
     };
 
     const updateImage = (index: number, image: Image) => {
@@ -750,16 +760,19 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                         Add Image
                                                                     </button>
                                                                     {safeOption.images.map((image, imgIdx) => {
-                                                                        // ✅ Safe defaults for image conditions
                                                                         const safeImage = {
                                                                             ...image,
+                                                                            urls: image.urls || (image.url ? [image.url] : []), // Migration
                                                                             conditions: image.conditions || [],
                                                                         };
 
                                                                         return (
                                                                             <div key={imgIdx} className="p-2 bg-neutral-900 border border-neutral-800 rounded space-y-2">
                                                                                 <div className="flex justify-between">
-                                                                                    <span className="text-xs text-neutral-600">Image {imgIdx + 1}</span>
+                                                                                    <span className="text-xs text-neutral-600">
+                                                                                        Image {imgIdx + 1}
+                                                                                        {safeImage.urls.length > 1 && ` (🎲 ${safeImage.urls.length} variants)`}
+                                                                                    </span>
                                                                                     <button
                                                                                         onClick={() => removeOptionImage(optIdx, imgIdx)}
                                                                                         className="text-xs text-neutral-600 hover:text-white"
@@ -767,12 +780,14 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                                         Remove
                                                                                     </button>
                                                                                 </div>
+
                                                                                 <ConditionEditor
                                                                                     conditions={safeImage.conditions}
                                                                                     onChange={(conditions) =>
                                                                                         updateOptionImage(optIdx, imgIdx, { ...safeImage, conditions })
                                                                                     }
                                                                                 />
+
                                                                                 <input
                                                                                     type="text"
                                                                                     value={safeImage.title}
@@ -782,15 +797,48 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                                     placeholder="Title"
                                                                                     className="w-full h-7 px-2 bg-black border border-neutral-800 rounded text-xs text-white"
                                                                                 />
-                                                                                <input
-                                                                                    type="text"
-                                                                                    value={safeImage.url}
-                                                                                    onChange={(e) =>
-                                                                                        updateOptionImage(optIdx, imgIdx, { ...safeImage, url: e.target.value })
-                                                                                    }
-                                                                                    placeholder="URL"
-                                                                                    className="w-full h-7 px-2 bg-black border border-neutral-800 rounded text-xs text-white"
-                                                                                />
+
+                                                                                {/* Multiple URL inputs */}
+                                                                                <div className="space-y-1">
+                                                                                    <div className="flex justify-between items-center">
+                                                                                        <label className="text-xs text-neutral-600">URLs</label>
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                const newUrls = [...safeImage.urls, ''];
+                                                                                                updateOptionImage(optIdx, imgIdx, { ...safeImage, urls: newUrls });
+                                                                                            }}
+                                                                                            className="text-xs text-blue-500 hover:text-blue-400"
+                                                                                        >
+                                                                                            + Add
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    {safeImage.urls.map((url, urlIdx) => (
+                                                                                        <div key={urlIdx} className="flex gap-1">
+                                                                                            <input
+                                                                                                type="text"
+                                                                                                value={url}
+                                                                                                onChange={(e) => {
+                                                                                                    const newUrls = [...safeImage.urls];
+                                                                                                    newUrls[urlIdx] = e.target.value;
+                                                                                                    updateOptionImage(optIdx, imgIdx, { ...safeImage, urls: newUrls });
+                                                                                                }}
+                                                                                                placeholder={`URL ${urlIdx + 1}`}
+                                                                                                className="flex-1 h-7 px-2 bg-black border border-neutral-800 rounded text-xs text-white"
+                                                                                            />
+                                                                                            {safeImage.urls.length > 1 && (
+                                                                                                <button
+                                                                                                    onClick={() => {
+                                                                                                        const newUrls = safeImage.urls.filter((_, i) => i !== urlIdx);
+                                                                                                        updateOptionImage(optIdx, imgIdx, { ...safeImage, urls: newUrls });
+                                                                                                    }}
+                                                                                                    className="h-7 w-7 flex items-center justify-center bg-black hover:bg-neutral-900 border border-neutral-800 rounded text-neutral-600 hover:text-white text-xs"
+                                                                                                >
+                                                                                                    ×
+                                                                                                </button>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    ))}
+                                                                                </div>
                                                                             </div>
                                                                         );
                                                                     })}
@@ -842,7 +890,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                         <div className="space-y-3">
                             <button
                                 onClick={addImage}
-                                className="w-full h-9 flex items-center justify-center bg-black hover:bg-neutral-200 text-black text-sm font-medium rounded transition-colors"
+                                className="w-full h-9 flex items-center justify-center bg-white hover:bg-neutral-200 text-black text-sm font-medium rounded transition-colors"
                             >
                                 Add Image
                             </button>
@@ -853,65 +901,138 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                     strategy={verticalListSortingStrategy}
                                 >
                                     <div className={`grid gap-3 ${isFullscreen ? 'md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
-                                        {formData.images.map((image, idx) => (
-                                            <SortableItem key={`img-${idx}`} id={`img-${idx}`}>
-                                                {(dragHandle) => (
-                                                    <CollapsibleCard
-                                                        title={image.title || `Image ${idx + 1}`}
-                                                        onRemove={() => removeImage(idx)}
-                                                        dragHandle={dragHandle}
-                                                    >
-                                                        <div className="space-y-3">
-                                                            <CollapsibleCard title="Conditions" count={image.conditions.length}>
-                                                                <ConditionEditor
-                                                                    conditions={image.conditions}
-                                                                    onChange={(conditions) => updateImage(idx, { ...image, conditions })}
-                                                                />
-                                                            </CollapsibleCard>
+                                        {formData.images.map((image, idx) => {
+                                            // Safe defaults
+                                            const safeImage = {
+                                                ...image,
+                                                urls: image.urls || (image.url ? [image.url] : []), // 👈 Migration from old format
+                                                conditions: image.conditions || [],
+                                            };
 
-                                                            <div className="space-y-2">
-                                                                <label className="text-xs text-neutral-500">Title</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={image.title}
-                                                                    onChange={(e) =>
-                                                                        updateImage(idx, { ...image, title: e.target.value })
-                                                                    }
-                                                                    placeholder="Image title"
-                                                                    className="w-full h-8 px-2 bg-neutral-900 border border-neutral-800 rounded text-sm text-white placeholder:text-neutral-700"
-                                                                />
-                                                            </div>
+                                            const hasMultipleUrls = safeImage.urls.length > 1;
 
-                                                            <div className="space-y-2">
-                                                                <label className="text-xs text-neutral-500">URL</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={image.url}
-                                                                    onChange={(e) =>
-                                                                        updateImage(idx, { ...image, url: e.target.value })
-                                                                    }
-                                                                    placeholder="https://..."
-                                                                    className="w-full h-8 px-2 bg-neutral-900 border border-neutral-800 rounded text-sm text-white placeholder:text-neutral-700"
-                                                                />
-                                                            </div>
+                                            return (
+                                                <SortableItem key={`img-${idx}`} id={`img-${idx}`}>
+                                                    {(dragHandle) => (
+                                                        <CollapsibleCard
+                                                            title={
+                                                                hasMultipleUrls
+                                                                    ? `🎲 ${image.title || `Image ${idx + 1}`} (${safeImage.urls.length} variants)`
+                                                                    : image.title || `Image ${idx + 1}`
+                                                            }
+                                                            onRemove={() => removeImage(idx)}
+                                                            dragHandle={dragHandle}
+                                                        >
+                                                            <div className="space-y-3">
+                                                                {/* Random Mode Indicator */}
+                                                                {hasMultipleUrls && (
+                                                                    <div className="p-2 bg-blue-950/30 border border-blue-900/50 rounded text-xs text-blue-400">
+                                                                        <span className="font-semibold">🎲 Random Selection:</span> One of {safeImage.urls.length} variants will be shown.
+                                                                    </div>
+                                                                )}
 
-                                                            {image.url && (
-                                                                <div className="rounded overflow-hidden border border-neutral-800">
-                                                                    <img
-                                                                        src={image.url}
-                                                                        alt={image.title}
-                                                                        className="w-full h-32 object-cover"
-                                                                        onError={(e) => {
-                                                                            e.currentTarget.style.display = 'none';
-                                                                        }}
+                                                                {/* Conditions */}
+                                                                <CollapsibleCard title="Conditions" count={safeImage.conditions.length}>
+                                                                    <ConditionEditor
+                                                                        conditions={safeImage.conditions}
+                                                                        onChange={(conditions) => updateImage(idx, { ...safeImage, conditions })}
+                                                                    />
+                                                                </CollapsibleCard>
+
+                                                                {/* Title */}
+                                                                <div className="space-y-2">
+                                                                    <label className="text-xs text-neutral-500">Title</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={safeImage.title}
+                                                                        onChange={(e) =>
+                                                                            updateImage(idx, { ...safeImage, title: e.target.value })
+                                                                        }
+                                                                        placeholder="Image title"
+                                                                        className="w-full h-8 px-2 bg-neutral-900 border border-neutral-800 rounded text-sm text-white placeholder:text-neutral-700"
                                                                     />
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                    </CollapsibleCard>
-                                                )}
-                                            </SortableItem>
-                                        ))}
+
+                                                                {/* URL Variants */}
+                                                                <div className="space-y-2">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <label className="text-xs text-neutral-500">
+                                                                            URL Variants {hasMultipleUrls && '(Random)'}
+                                                                        </label>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const newUrls = [...safeImage.urls, ''];
+                                                                                updateImage(idx, { ...safeImage, urls: newUrls });
+                                                                            }}
+                                                                            className="text-xs text-blue-500 hover:text-blue-400"
+                                                                        >
+                                                                            + Add Variant
+                                                                        </button>
+                                                                    </div>
+
+                                                                    {safeImage.urls.map((url, urlIdx) => (
+                                                                        <div key={urlIdx} className="space-y-2">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <div className="flex-1 relative">
+                                                                                    {hasMultipleUrls && (
+                                                                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-neutral-600">
+                                                                                            #{urlIdx + 1}
+                                                                                        </span>
+                                                                                    )}
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={url}
+                                                                                        onChange={(e) => {
+                                                                                            const newUrls = [...safeImage.urls];
+                                                                                            newUrls[urlIdx] = e.target.value;
+                                                                                            updateImage(idx, { ...safeImage, urls: newUrls });
+                                                                                        }}
+                                                                                        placeholder={`https://... ${hasMultipleUrls ? `(variant ${urlIdx + 1})` : ''}`}
+                                                                                        className={`w-full h-8 px-2 bg-neutral-900 border rounded text-sm text-white placeholder:text-neutral-700 ${hasMultipleUrls ? 'pl-10 border-blue-900/50' : 'border-neutral-800'
+                                                                                            }`}
+                                                                                    />
+                                                                                </div>
+                                                                                {safeImage.urls.length > 1 && (
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            const newUrls = safeImage.urls.filter((_, i) => i !== urlIdx);
+                                                                                            updateImage(idx, { ...safeImage, urls: newUrls });
+                                                                                        }}
+                                                                                        className="h-8 w-8 flex items-center justify-center bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded text-neutral-500 hover:text-white transition-colors"
+                                                                                        title="Remove variant"
+                                                                                    >
+                                                                                        ×
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+
+                                                                            {/* Preview */}
+                                                                            {url && (
+                                                                                <div className="rounded overflow-hidden border border-neutral-800 relative">
+                                                                                    {hasMultipleUrls && (
+                                                                                        <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded font-semibold">
+                                                                                            Variant {urlIdx + 1}
+                                                                                        </div>
+                                                                                    )}
+                                                                                    <img
+                                                                                        src={url}
+                                                                                        alt={`${safeImage.title} - variant ${urlIdx + 1}`}
+                                                                                        className="w-full h-32 object-cover"
+                                                                                        onError={(e) => {
+                                                                                            e.currentTarget.style.display = 'none';
+                                                                                        }}
+                                                                                    />
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </CollapsibleCard>
+                                                    )}
+                                                </SortableItem>
+                                            );
+                                        })}
                                     </div>
                                 </SortableContext>
                             </DndContext>
