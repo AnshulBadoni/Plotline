@@ -15,18 +15,27 @@ export interface Character {
 export interface Condition {
     character: string;
     attribute: string;
-    operator: '==' | '!=' | '>' | '<' | '>=' | '<=' | '+' | '-' | '=';
+    operator: '==' | '!=' | '>' | '<' | '>=' | '<=' | '+' | '-' | '=' | 'random';
     value: string;
+}
+
+export interface ConditionGroup {
+    type: 'group';  
+    logic: 'AND' | 'OR';
+    conditions: (Condition | ConditionGroup)[];  // 🔁 Recursive!
+}
+
+export type ConditionItem = Condition | ConditionGroup;
+
+
+export interface DialogueBlock {
+    conditions: (Condition | ConditionGroup)[];
+    dialogues: Dialogue[];
 }
 
 export interface Dialogue {
     character: string;
     dialogue: string;
-}
-
-export interface DialogueBlock {
-    conditions: Condition[];
-    dialogues: Dialogue[];
 }
 
 

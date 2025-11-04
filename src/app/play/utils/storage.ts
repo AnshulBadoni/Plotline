@@ -29,11 +29,23 @@ export function loadStoryFromStorage(): StoryPiece[] {
 
 export function loadCharactersFromStorage(): any[] {
     try {
-        const charsRaw = localStorage.getItem('characters');
+        const charsRaw = localStorage.getItem('vn-characters');
+        console.log('Raw characters data:', charsRaw);
+        
         if (!charsRaw) return [];
 
         const parsed = JSON.parse(charsRaw);
-        return Array.isArray(parsed) ? parsed : [];
+        
+        if (parsed?.state?.characters && Array.isArray(parsed.state.characters)) {
+            console.log('Loaded characters:', parsed.state.characters);
+            return parsed.state.characters;
+        }
+        
+        if (Array.isArray(parsed)) {
+            return parsed;
+        }
+        
+        return [];
     } catch (error) {
         console.error('Error loading characters:', error);
         return [];

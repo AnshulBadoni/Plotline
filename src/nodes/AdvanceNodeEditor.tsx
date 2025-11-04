@@ -5,8 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { Node } from 'reactflow';
 import { StoryNodeData, Dialogue, DialogueBlock, Option, Image, Loop } from '@/types';
 import { useCharacterStore } from '@/store/characterStore';
-import ConditionEditor from '@/components/ConditionEditor';
 import EffectEditor from '@/components/EffectEditor';
+import AdvanceConditionEditor from '@/components/AdvanceConditionEditor';
 import {
     DndContext,
     closestCenter,
@@ -505,7 +505,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                     <div className="space-y-3">
                                                         <div>
                                                             <label className="text-xs text-neutral-500 mb-2 block">Conditions</label>
-                                                            <ConditionEditor
+                                                            <AdvanceConditionEditor
                                                                 conditions={block.conditions}
                                                                 onChange={(conditions) =>
                                                                     updateDialogueBlock(blockIdx, { ...block, conditions })
@@ -691,7 +691,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                                         Remove
                                                                                     </button>
                                                                                 </div>
-                                                                                <ConditionEditor
+                                                                                <AdvanceConditionEditor
                                                                                     conditions={safeBlock.conditions}
                                                                                     onChange={(conditions) =>
                                                                                         updateOptionDialogueBlock(optIdx, blockIdx, { ...safeBlock, conditions })
@@ -781,7 +781,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                                     </button>
                                                                                 </div>
 
-                                                                                <ConditionEditor
+                                                                                <AdvanceConditionEditor
                                                                                     conditions={safeImage.conditions}
                                                                                     onChange={(conditions) =>
                                                                                         updateOptionImage(optIdx, imgIdx, { ...safeImage, conditions })
@@ -812,7 +812,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                                             + Add
                                                                                         </button>
                                                                                     </div>
-                                                                                    {safeImage.urls.map((url, urlIdx) => (
+                                                                                    {safeImage.urls.map(({url, urlIdx}: { url: string; urlIdx: number }) => (
                                                                                         <div key={urlIdx} className="flex gap-1">
                                                                                             <input
                                                                                                 type="text"
@@ -864,7 +864,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                             </button>
                                                                             {safeOption.loop.map((loop, loopIdx) => (
                                                                                 <div key={loopIdx} className="p-2 bg-neutral-900 border border-neutral-800 rounded">
-                                                                                    <ConditionEditor
+                                                                                    <AdvanceConditionEditor
                                                                                         conditions={loop.conditions || []}
                                                                                         onChange={(conditions) => updateLoopConditions(optIdx, loopIdx, conditions)}
                                                                                     />
@@ -933,7 +933,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
 
                                                                 {/* Conditions */}
                                                                 <CollapsibleCard title="Conditions" count={safeImage.conditions.length}>
-                                                                    <ConditionEditor
+                                                                    <AdvanceConditionEditor
                                                                         conditions={safeImage.conditions}
                                                                         onChange={(conditions) => updateImage(idx, { ...safeImage, conditions })}
                                                                     />

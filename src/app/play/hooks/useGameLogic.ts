@@ -174,11 +174,30 @@ export function useGameLogic(storyIdParam: string | null) {
         return story.find((p) => p.id === state.currentStoryId) || story[0];
     }, [story, state.currentStoryId]);
 
+    // ✅ Enhanced condition checker with AND/OR group support
     const checkConditions = useCallback(
-        (conditions: any[]): boolean => {
-            if (!conditions?.length) return true;
-            return conditions.every((condition) => {
-                const { character, attribute, operator, value } = condition;
+        (conditionItems: any[], statsOverride?: Record<string, Record<string, string>>): boolean => {
+            if (!conditionItems?.length) return true;
+
+            // Use override stats if provided, otherwise use state stats
+            const stats = statsOverride || state.characterStats;
+
+            const evaluateItem = (item: any): boolean => {
+                // Check if it's a group
+                if (item.type === 'group' && item.conditions) {
+                    const results = item.conditions.map((child: any) => evaluateItem(child));
+
+                    if (item.logic === 'OR') {
+                        return results.some(r => r); // At least one true
+                    } else {
+                        return results.every(r => r); // All true (AND)
+                    }
+                }
+
+                // Single condition
+                const { character, attribute, operator, value } = item;
+
+                // Story random check
                 if (attribute === '0') {
                     const numValue = parseInt(value);
                     switch (operator) {
@@ -191,9 +210,12 @@ export function useGameLogic(storyIdParam: string | null) {
                         default: return false;
                     }
                 }
+
                 if (!character || !attribute) return true;
-                const currentValue = parseFloat(state.characterStats[character]?.[attribute]) || 0;
+
+                const currentValue = parseFloat(stats[character]?.[attribute]) || 0;
                 const checkValue = parseFloat(value) || 0;
+
                 switch (operator) {
                     case '==': return currentValue === checkValue;
                     case '!=': return currentValue !== checkValue;
@@ -204,9 +226,51 @@ export function useGameLogic(storyIdParam: string | null) {
                     case 'random': return Math.random() * 10 <= checkValue;
                     default: return false;
                 }
-            });
+            };
+
+            // Top-level defaults to AND logic
+            return conditionItems.every(item => evaluateItem(item));
         },
         [state.characterStats, state.storyRandom]
+    );
+
+    // ✅ Calculate stats after effects (without dispatching)
+    const calculateStatsAfterEffects = useCallback(
+        (effects: any[]) => {
+            const newStats = JSON.parse(JSON.stringify(state.characterStats)); // Deep clone
+
+            effects.forEach((effect) => {
+                const { character, attribute, operator, value } = effect;
+
+                // Initialize character if doesn't exist
+                if (!newStats[character]) {
+                    newStats[character] = {};
+                }
+
+                // Initialize attribute if doesn't exist
+                if (!newStats[character][attribute]) {
+                    newStats[character][attribute] = '0';
+                }
+
+                const current = parseFloat(newStats[character][attribute]) || 0;
+                const effectValue = parseFloat(value) || 0;
+
+                switch (operator) {
+                    case '=':
+                        newStats[character][attribute] = value;
+                        break;
+                    case '+':
+                        newStats[character][attribute] = (current + effectValue).toString();
+                        break;
+                    case '-':
+                        newStats[character][attribute] = Math.max(0, current - effectValue).toString();
+                        break;
+                }
+            });
+
+            return newStats;
+        },
+        [state.characterStats]
     );
 
     const getValidBlocks = useCallback(
@@ -231,28 +295,33 @@ export function useGameLogic(storyIdParam: string | null) {
         [getValidBlocks]
     );
 
+    // ✅ Handle images with multiple URLs
     useEffect(() => {
         if (!currentStory) return;
 
-        // Choose which images to use
         const imageList = state.showOptionDialogue && state.selectedOption
             ? getValidImages(state.selectedOption.images || [])
             : getValidImages(currentStory.images || []);
 
-        // For each valid image block, pick one random URL if it's an array
         const chosenUrls = imageList
             .map((img) => {
-                if (Array.isArray(img.url) && img.url.length > 0) {
-                    return img.url[Math.floor(Math.random() * img.url.length)];
+                // Handle new format: urls array
+                if (img.urls && Array.isArray(img.urls) && img.urls.length > 0) {
+                    return img.urls[Math.floor(Math.random() * img.urls.length)];
                 }
-                if (typeof img.url === 'string') {
-                    return img.url;
+                // Handle old format: single url
+                if (img.url) {
+                    if (Array.isArray(img.url) && img.url.length > 0) {
+                        return img.url[Math.floor(Math.random() * img.url.length)];
+                    }
+                    if (typeof img.url === 'string') {
+                        return img.url;
+                    }
                 }
                 return null;
             })
             .filter((url): url is string => !!url);
 
-        // 🔁 Only update if changed — avoid unnecessary re-renders
         if (
             chosenUrls.length !== state.selectedImageUrls.length ||
             chosenUrls.some((url, i) => url !== state.selectedImageUrls[i])
@@ -267,6 +336,7 @@ export function useGameLogic(storyIdParam: string | null) {
         state.selectedImageUrls,
     ]);
 
+    // Set random value when story piece changes
     useEffect(() => {
         if (currentStory?.randomEvent !== undefined) {
             dispatch({ type: 'SET_RANDOM', payload: Math.floor(Math.random() * currentStory.randomEvent) });
@@ -293,9 +363,9 @@ export function useGameLogic(storyIdParam: string | null) {
         );
     }, [currentStory, checkConditions, state.usedOptions]);
 
-    // ✅ Fixed: Save full snapshot
+    // ✅ Save full snapshot to history
     const saveHistory = useCallback(() => {
-        const snapshot = {
+        const snapshot: GameState = {
             currentStoryId: state.currentStoryId,
             currentDialogueIndex: state.currentDialogueIndex,
             currentImageIndex: state.currentImageIndex,
@@ -303,27 +373,14 @@ export function useGameLogic(storyIdParam: string | null) {
             showOptionDialogue: state.showOptionDialogue,
             selectedOption: state.selectedOption,
             currentOptionDialogueIndex: state.currentOptionDialogueIndex,
-            characterStats: { ...state.characterStats },
+            characterStats: JSON.parse(JSON.stringify(state.characterStats)),
             selectedImageUrls: [...state.selectedImageUrls],
-            usedOptions: Array.from(state.usedOptions),
+            usedOptions: new Set(state.usedOptions),
             suppressDefaultDialogue: state.suppressDefaultDialogue,
             storyRandom: state.storyRandom,
         };
-        setHistory((prev: any) => [...prev, snapshot]);
-    }, [
-        state.currentStoryId,
-        state.currentDialogueIndex,
-        state.currentImageIndex,
-        state.showOptions,
-        state.showOptionDialogue,
-        state.selectedOption,
-        state.currentOptionDialogueIndex,
-        state.characterStats,
-        state.selectedImageUrls,
-        state.usedOptions,
-        state.suppressDefaultDialogue,
-        state.storyRandom,
-    ]);
+        setHistory((prev) => [...prev, snapshot]);
+    }, [state]);
 
     const moveToNextPiece = useCallback((targetId?: number) => {
         if (!Array.isArray(story) || story.length === 0) return;
@@ -335,45 +392,115 @@ export function useGameLogic(storyIdParam: string | null) {
         }
     }, [story, currentStory]);
 
-
+    // ✅ FIXED: Handle option selection with proper loop checking
     const handleOptionSelect = useCallback(
         (option: any) => {
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🎯 Option selected:', option.option);
+            console.log('📊 Stats BEFORE effects:', state.characterStats);
+
             saveHistory();
+
+            // Calculate new stats BEFORE checking loop
+            const newStats = option.effects?.length
+                ? calculateStatsAfterEffects(option.effects)
+                : state.characterStats;
+
+            console.log('📊 Stats AFTER effects:', newStats);
+
+            // Apply effects
             if (option.effects?.length) {
                 dispatch({ type: 'APPLY_EFFECTS', payload: option.effects });
             }
+
             dispatch({ type: 'SELECT_OPTION', payload: option });
+
             const optDialogues = getRandomDialogues(option.dialogueBlocks || []);
+
             if (optDialogues.length === 0) {
-                const shouldLoop = option.loop?.some((loop: any) => !checkConditions(loop.conditions));
+                // ✅ Check loop with NEW stats
+                const shouldLoop = option.loop?.some((loop: any) => {
+                    const result = checkConditions(loop.conditions, newStats);
+                    console.log('🔁 Loop conditions:', loop.conditions);
+                    console.log('🔁 Loop result:', result);
+                    return result;
+                });
+
+                console.log('🔁 Should loop?', shouldLoop);
+
                 if (shouldLoop) {
+                    console.log('↩️  Looping back to options');
                     dispatch({ type: 'COMPLETE_OPTION_DIALOGUE' });
                     dispatch({ type: 'SUPPRESS_DEFAULT_DIALOGUE', payload: true });
                     dispatch({ type: 'SHOW_OPTIONS' });
                 } else {
+                    console.log('➡️  Moving to next piece:', option.nextPieceId);
                     dispatch({ type: 'COMPLETE_OPTION_DIALOGUE' });
                     moveToNextPiece(option.nextPieceId);
                 }
+            } else {
+                console.log('💬 Showing option dialogues first');
             }
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         },
-        [saveHistory, getRandomDialogues, checkConditions, moveToNextPiece]
+        [
+            saveHistory,
+            getRandomDialogues,
+            checkConditions,
+            calculateStatsAfterEffects,
+            moveToNextPiece,
+            state.characterStats
+        ]
     );
 
     const handleOptionComplete = useCallback(() => {
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('✅ Option dialogue complete');
+        console.log('📊 Current stats:', state.characterStats);
+
         if (!state.selectedOption) {
             moveToNextPiece();
             return;
         }
-        const shouldLoop = state.selectedOption.loop?.some((loop: any) => !checkConditions(loop.conditions));
+
+        const shouldLoop = state.selectedOption.loop?.some((loop: any) => {
+            const result = checkConditions(loop.conditions);
+            console.log('🔁 Loop conditions:', loop.conditions);
+            console.log('🔁 Loop result:', result);
+            return result;
+        });
+
+        console.log('🔁 Should loop?', shouldLoop);
+
         if (shouldLoop) {
+            console.log('↩️  Looping back to options');
+
+            // ✅ Clear the used option so it can be selected again
+            const clearedUsedOptions = new Set(state.usedOptions);
+            clearedUsedOptions.delete(state.selectedOption.option);
+
             dispatch({ type: 'COMPLETE_OPTION_DIALOGUE' });
             dispatch({ type: 'SUPPRESS_DEFAULT_DIALOGUE', payload: true });
-            dispatch({ type: 'SHOW_OPTIONS' });
+
+            // ✅ Update usedOptions to remove the looping option
+            dispatch({
+                type: 'LOAD_STATE',
+                payload: {
+                    ...state,
+                    usedOptions: clearedUsedOptions,
+                    showOptions: true,
+                    showOptionDialogue: false,
+                    selectedOption: null,
+                    currentOptionDialogueIndex: 0,
+                }
+            });
         } else {
+            console.log('➡️  Moving to next piece:', state.selectedOption.nextPieceId);
             dispatch({ type: 'COMPLETE_OPTION_DIALOGUE' });
             moveToNextPiece(state.selectedOption.nextPieceId);
         }
-    }, [state.selectedOption, checkConditions, moveToNextPiece]);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    }, [state, checkConditions, moveToNextPiece]);
 
     const handleBack = useCallback(() => {
         if (history.length === 0) return;
@@ -401,7 +528,7 @@ export function useGameLogic(storyIdParam: string | null) {
         const saves: SavedGame[] = JSON.parse(localStorage.getItem('saved-games') || '[]');
         const save = saves[saveIndex];
         if (save) {
-            const loadedState = {
+            const loadedState: GameState = {
                 ...save,
                 usedOptions: new Set(save.usedOptions || []),
             };
@@ -416,9 +543,9 @@ export function useGameLogic(storyIdParam: string | null) {
         }
     }, []);
 
-
     const handleNext = useCallback(() => {
         saveHistory();
+
         if (state.currentImageIndex < state.selectedImageUrls.length - 1) {
             dispatch({ type: 'NEXT_IMAGE' });
         } else if (state.showOptionDialogue && state.selectedOption) {
@@ -444,6 +571,7 @@ export function useGameLogic(storyIdParam: string | null) {
         handleOptionComplete,
         moveToNextPiece,
     ]);
+
     return {
         story,
         characters,
