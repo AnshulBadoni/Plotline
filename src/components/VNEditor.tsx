@@ -16,7 +16,7 @@ import ReactFlow, {
   Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Play, Download, Plus, Layers, Link as LinkIcon, Edit3, Calendar, Box, Upload, AlertTriangle } from 'lucide-react';
+import { Play, Download, Plus, Layers, Link as LinkIcon, Edit3, Calendar, Box, Upload, AlertTriangle, Layers2, Layers3 } from 'lucide-react';
 
 import StoryNode from '@/nodes/StoryNode';
 import Sidebar from './Sidebar';
@@ -35,9 +35,7 @@ const VNEditor: React.FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<StoryNodeData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { selectedNode, setSelectedNode } = useVNStore();
-
-  const { currentStoryId, getCurrentStory, updateStory, stories, setCurrentStoryId, addStory } = useStoryManagement();
-
+  const { currentStoryId, getCurrentStory, updateStory, stories, setCurrentStory, addStory } = useStoryManagement();
   // Import modal state
   const [showImportModal, setShowImportModal] = useState(false);
   const [importData, setImportData] = useState<any>(null);
@@ -49,14 +47,17 @@ const VNEditor: React.FC = () => {
   // Load story when selected
   useEffect(() => {
     const currentStory = getCurrentStory();
-    if (currentStory && currentStory.story[0]) {
+    if (currentStory && currentStory.story && Array.isArray(currentStory.story[0])) {
       const loadedNodes: Node<StoryNodeData>[] = currentStory.story[0].map((nodeData: StoryNodeData, index: number) => ({
         id: `node-${nodeData.id}`,
         type: 'storyNode',
-        position: { x: 100 + index * 350, y: 100 + (index % 3) * 250 },
+        position: nodeData.position || { x: 100 + index * 350, y: 100 + (index % 3) * 250 },
         data: nodeData,
       }));
       setNodes(loadedNodes);
+    } else {
+      // Initialize with empty nodes if story structure is invalid or empty
+      setNodes([]);
     }
   }, [currentStoryId]);
 
@@ -70,6 +71,7 @@ const VNEditor: React.FC = () => {
             id: data.id,
             title: data.title,
             dialogueBlocks: data.dialogueBlocks || [],
+            position: node.position,
             images: data.images || [],
             options: data.options || [],
             nextStoryPiece: data.nextStoryPiece ?? -1,
@@ -110,6 +112,21 @@ const VNEditor: React.FC = () => {
     };
     setNodes((nds) => [...nds, newNode]);
   }, [setNodes, currentStoryId]);
+
+  const onFormat = useCallback(() => {
+    // Simple layout algorithm: arrange nodes in a grid
+    const spacingX = 350;
+    const spacingY = 250;
+    const nodesPerRow = 4;
+    setNodes((nds) =>
+      nds.map((node, index) => ({
+        ...node,
+        position: {
+          x: 100 + (index % nodesPerRow) * spacingX,
+          y: 100 + Math.floor(index / nodesPerRow) * spacingY,
+        },
+      })))
+  }, [nodes]);
 
   const onNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node<StoryNodeData>) => {
@@ -237,7 +254,7 @@ const VNEditor: React.FC = () => {
     };
 
     addStory(newStory);
-    setCurrentStoryId(newStoryId);
+    setCurrentStory(newStoryId);
     setShowImportModal(false);
     setImportData(null);
     setConflictingStory(null);
@@ -249,7 +266,7 @@ const VNEditor: React.FC = () => {
     if (conflictingStory && newStoryName.toLowerCase() === conflictingStory.metadata.title.toLowerCase()) {
       // Overwrite existing story
       updateStory(conflictingStory.metadata.id, importData.story);
-      setCurrentStoryId(conflictingStory.metadata.id);
+      setCurrentStory(conflictingStory.metadata.id);
       alert(`Story "${conflictingStory.metadata.title}" has been overwritten!`);
     } else {
       // Import with new name
@@ -303,13 +320,6 @@ const VNEditor: React.FC = () => {
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap justify-end text-xs">
             <StoryManager />
             <CharacterManager />
-            <button
-              onClick={handleImportClick}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 sm:px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
-            >
-              <Upload className="w-4 h-4" />
-              Import
-            </button>
             {currentStoryId && (
               <>
                 <button
@@ -325,8 +335,15 @@ const VNEditor: React.FC = () => {
                   onClick={onExport}
                   className="flex items-center gap-2 bg-zinc-100 hover:bg-white text-zinc-900 px-4 sm:px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
                 >
-                  <Download className="w-4 h-4" />
+                  <Upload className="w-4 h-4" />
                   Export
+                </button>
+                <button
+                  onClick={handleImportClick}
+                  className="flex items-center gap-2 bg-gray-100 hover:bg-blue-500 text-black px-4 sm:px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
+                >
+                  <Download className="w-4 h-4" />
+                  Import
                 </button>
               </>
             )}
@@ -416,7 +433,7 @@ const VNEditor: React.FC = () => {
                 {Object.values(stories).map((storyData: any) => (
                   <button
                     key={storyData.metadata.id}
-                    onClick={() => setCurrentStoryId(storyData.metadata.id)}
+                    onClick={() => setCurrentStory(storyData.metadata.id)}
                     className="group bg-black border-2 border-zinc-800 hover:border-zinc-700 rounded-xl p-6 transition-all hover:bg-zinc-800/50 hover:scale-105 text-left"
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -428,7 +445,7 @@ const VNEditor: React.FC = () => {
                           {storyData.metadata.description || 'No description available'}
                         </p>
                       </div>
-                      <Edit3 className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0 ml-3" />
+                      <Edit3 className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0 ml-3" />
                     </div>
 
                     <div className="flex items-center gap-4 text-xs text-zinc-600">
@@ -454,7 +471,7 @@ const VNEditor: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 mb-8">
+              <div className="text-center py-4 mb-8">
                 <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto mb-6 border border-zinc-800">
                   <Layers className="w-10 h-10 text-zinc-600" />
                 </div>
@@ -463,7 +480,8 @@ const VNEditor: React.FC = () => {
               </div>
             )}
 
-            <div className="text-center">
+
+            <div className="text-center flex items-center justify-center">
               <StoryManager />
             </div>
           </div>
@@ -503,13 +521,20 @@ const VNEditor: React.FC = () => {
               />
 
               {currentStoryId && (
-                <Panel position="top-right" className="m-4">
+                <Panel position="top-right" className="m-4 flex flex-col gap-2">
                   <button
                     onClick={onAddNode}
                     className="flex items-center gap-2 text-xs bg-zinc-100 hover:bg-white text-zinc-900 px-5 py-3 rounded-xl font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
                   >
                     <Plus className="w-5 h-5" />
                     Add Node
+                  </button>
+                  <button
+                    onClick={onFormat}
+                    className="flex items-center gap-2 text-xs bg-zinc-800 hover:bg-zinc-900 text-zinc-100 px-7 py-3 rounded-xl font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+                  >
+                    <Layers3 className="w-5 h-5" />
+                    Format
                   </button>
                 </Panel>
               )}
