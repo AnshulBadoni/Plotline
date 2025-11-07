@@ -20,7 +20,7 @@ export interface Condition {
 }
 
 export interface ConditionGroup {
-    type: 'group';  
+    type: 'group';
     logic: 'AND' | 'OR';
     conditions: (Condition | ConditionGroup)[];  // 🔁 Recursive!
 }
@@ -86,6 +86,8 @@ export interface StoryNodeData {
     id: number;
     title: string;
     dialogueBlocks: DialogueBlock[];
+    position?: { x: number; y: number };
+    randomEvent?: number;
     images: Image[];
     options: Option[];
     nextStoryPiece: number;

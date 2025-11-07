@@ -16,7 +16,7 @@ import ReactFlow, {
   Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Play, Download, Plus, Layers, Link as LinkIcon, Edit3, Calendar, Box, Upload, AlertTriangle } from 'lucide-react';
+import { Play, Download, Plus, Layers, Link as LinkIcon, Edit3, Calendar, Box, Upload, AlertTriangle, Layers2, Layers3 } from 'lucide-react';
 
 import StoryNode from '@/nodes/StoryNode';
 import Sidebar from './Sidebar';
@@ -35,9 +35,7 @@ const VNEditor: React.FC = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<StoryNodeData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { selectedNode, setSelectedNode } = useVNStore();
-
   const { currentStoryId, getCurrentStory, updateStory, stories, setCurrentStory, addStory } = useStoryManagement();
-
   // Import modal state
   const [showImportModal, setShowImportModal] = useState(false);
   const [importData, setImportData] = useState<any>(null);
@@ -53,7 +51,7 @@ const VNEditor: React.FC = () => {
       const loadedNodes: Node<StoryNodeData>[] = currentStory.story[0].map((nodeData: StoryNodeData, index: number) => ({
         id: `node-${nodeData.id}`,
         type: 'storyNode',
-        position: { x: 100 + index * 350, y: 100 + (index % 3) * 250 },
+        position: nodeData.position || { x: 100 + index * 350, y: 100 + (index % 3) * 250 },
         data: nodeData,
       }));
       setNodes(loadedNodes);
@@ -73,6 +71,7 @@ const VNEditor: React.FC = () => {
             id: data.id,
             title: data.title,
             dialogueBlocks: data.dialogueBlocks || [],
+            position: node.position,
             images: data.images || [],
             options: data.options || [],
             nextStoryPiece: data.nextStoryPiece ?? -1,
@@ -113,6 +112,21 @@ const VNEditor: React.FC = () => {
     };
     setNodes((nds) => [...nds, newNode]);
   }, [setNodes, currentStoryId]);
+
+  const onFormat = useCallback(() => {
+    // Simple layout algorithm: arrange nodes in a grid
+    const spacingX = 350;
+    const spacingY = 250;
+    const nodesPerRow = 4;
+    setNodes((nds) =>
+      nds.map((node, index) => ({
+        ...node,
+        position: {
+          x: 100 + (index % nodesPerRow) * spacingX,
+          y: 100 + Math.floor(index / nodesPerRow) * spacingY,
+        },
+      })))
+  }, [nodes]);
 
   const onNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node<StoryNodeData>) => {
@@ -306,13 +320,6 @@ const VNEditor: React.FC = () => {
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap justify-end text-xs">
             <StoryManager />
             <CharacterManager />
-            <button
-              onClick={handleImportClick}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 sm:px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
-            >
-              <Upload className="w-4 h-4" />
-              Import
-            </button>
             {currentStoryId && (
               <>
                 <button
@@ -328,8 +335,15 @@ const VNEditor: React.FC = () => {
                   onClick={onExport}
                   className="flex items-center gap-2 bg-zinc-100 hover:bg-white text-zinc-900 px-4 sm:px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
                 >
-                  <Download className="w-4 h-4" />
+                  <Upload className="w-4 h-4" />
                   Export
+                </button>
+                <button
+                  onClick={handleImportClick}
+                  className="flex items-center gap-2 bg-gray-100 hover:bg-blue-500 text-black px-4 sm:px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all whitespace-nowrap"
+                >
+                  <Download className="w-4 h-4" />
+                  Import
                 </button>
               </>
             )}
@@ -507,13 +521,20 @@ const VNEditor: React.FC = () => {
               />
 
               {currentStoryId && (
-                <Panel position="top-right" className="m-4">
+                <Panel position="top-right" className="m-4 flex flex-col gap-2">
                   <button
                     onClick={onAddNode}
                     className="flex items-center gap-2 text-xs bg-zinc-100 hover:bg-white text-zinc-900 px-5 py-3 rounded-xl font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
                   >
                     <Plus className="w-5 h-5" />
                     Add Node
+                  </button>
+                  <button
+                    onClick={onFormat}
+                    className="flex items-center gap-2 text-xs bg-zinc-800 hover:bg-zinc-900 text-zinc-100 px-7 py-3 rounded-xl font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+                  >
+                    <Layers3 className="w-5 h-5" />
+                    Format
                   </button>
                 </Panel>
               )}
