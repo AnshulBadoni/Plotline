@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useEffect, useState, useCallback, useMemo, useReducer } from 'react';
+import { useEffect, useState, useCallback, useMemo, useReducer, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ChevronRight, ChevronLeft, X, User, Settings, ArrowLeft, Play, Heart, Zap, Shield } from 'lucide-react';
 import { useStoryManagement } from '@/store/storyManagement';
@@ -157,7 +157,7 @@ function loadCharactersFromStorage(): Character[] {
 }
 
 // ==================== MAIN COMPONENT ====================
-export default function VisualNovelPlayer() {
+function PlayPageContent() {
     const searchParams = useSearchParams();
     const storyIdParam = searchParams?.get('story');
 
@@ -966,5 +966,13 @@ export default function VisualNovelPlayer() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function VisualNovelPlayer() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <PlayPageContent />
+        </Suspense>
     );
 }
