@@ -16,7 +16,7 @@ import ReactFlow, {
   Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Play, Download, Plus, Layers, Link as LinkIcon, Edit3, Calendar, Box, Upload, AlertTriangle, Layers2, Layers3 } from 'lucide-react';
+import { Play, Download, Plus, Layers, Link as LinkIcon, Edit3, Calendar, Box, Upload, AlertTriangle, Layers2, Layers3, Search } from 'lucide-react';
 
 import StoryNode from '@/nodes/StoryNode';
 import Sidebar from './Sidebar';
@@ -128,6 +128,23 @@ const VNEditor: React.FC = () => {
       })))
   }, [nodes]);
 
+  const onSearch = useCallback((query: string) => {
+    const lowerQuery = query.toLowerCase();
+    // get position of first matching node and center view on it
+    const targetNode = nodes.find((node) =>
+      node.data.title.toLowerCase().includes(lowerQuery) ||
+      node.data.dialogueBlocks.some((block) =>
+        block.dialogues.some((dialogue) => dialogue.dialogue.toLowerCase().includes(lowerQuery))
+      )
+    );
+    if (targetNode) {
+      const reactFlowWrapper = document.querySelector('.reactflow-wrapper');
+      if (reactFlowWrapper) {
+        reactFlowWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+  }, []);
   const onNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node<StoryNodeData>) => {
       setSelectedNode(node);
@@ -309,10 +326,14 @@ const VNEditor: React.FC = () => {
                 <span className="text-white font-semibold">{nodes.length}</span>
               </div>
               <div className="w-px h-4 bg-zinc-700"></div>
-              <div className="flex items-center gap-2 text-zinc-400">
+              {/* <div className="flex items-center gap-2 text-zinc-400">
                 <LinkIcon className="w-3.5 h-3.5" />
                 <span className="font-medium">Connections:</span>
                 <span className="text-white font-semibold">{edges.length}</span>
+              </div> */}
+              <div className="flex items-center gap-2 text-zinc-400">
+                {/* <Search className="w-3.5 h-3.5" /> */}
+                <input onChange={(e) => onSearch(e.target.value)} type="text" placeholder="Search... (coming soon)" className='rounded-md px-4 py-2 bg-neutral-800 text-gray-100' />
               </div>
             </div>
           </div>
@@ -491,7 +512,7 @@ const VNEditor: React.FC = () => {
         <div className="flex flex-1 overflow-hidden">
           {/* <Sidebar onAddNode={onAddNode} /> */}
 
-          <div className="flex-1 bg-black relative">
+          <div className="flex-1 relative">
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -501,7 +522,6 @@ const VNEditor: React.FC = () => {
               onNodeClick={onNodeClick}
               nodeTypes={nodeTypes}
               fitView
-              className="bg-black"
             >
               <Controls className="bg-zinc-800/90 backdrop-blur-sm border border-zinc-700 shadow-2xl rounded-xl" />
               <MiniMap
@@ -515,9 +535,9 @@ const VNEditor: React.FC = () => {
               <Background
                 variant={BackgroundVariant.Dots}
                 gap={16}
-                size={1.5}
+                size={2}
                 color="#3f3f46"
-                className="bg-black"
+                className="bg-neutral-900"
               />
 
               {currentStoryId && (

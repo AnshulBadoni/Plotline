@@ -77,6 +77,7 @@ export interface Option {
     option: string;
     nextPieceId: number;
     effects: Effect[];
+    conditions: Condition[];
     dialogueBlocks: DialogueBlock[];
     images: Image[];
     loop: Loop[] | null;

@@ -7,7 +7,7 @@ export default function NextButton({ onNext }: { onNext: () => void; }) {
         <div className="flex justify-end">
             <button
                 onClick={onNext}
-                className="bg-zinc-100 hover:bg-black text-zinc-900 px-10 py-4 rounded-xl font-semibold transition-all flex items-center gap-3 shadow-lg text-lg"
+                className="bg-zinc-100 hover:bg-black text-zinc-900 max-h-16 px-10 py-4 rounded-xl font-semibold transition-all flex items-center gap-3 shadow-lg text-lg"
             >
                 <span>Continue</span>
                 <ChevronRight className="w-5 h-5" />

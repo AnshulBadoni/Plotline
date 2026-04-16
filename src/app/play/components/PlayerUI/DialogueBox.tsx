@@ -7,7 +7,7 @@ export default function DialogueBox({ character, dialogue }: {
     if (!dialogue) return null;
 
     return (
-        <div className="bg-zinc-900/95 backdrop-blur-md rounded-2xl overflow-hidden border border-zinc-800/50 shadow-2xl">
+        <div className="bg-zinc-900/75 backdrop-blur-md rounded-2xl overflow-hidden border border-zinc-800/50 shadow-2xl">
             <div className="p-8">
                 <div className="flex items-start gap-6">
                     {character && (
