@@ -41,7 +41,8 @@ export interface Dialogue {
 
 export interface StoryImage {
     conditions: Condition[];
-    url: string[];
+    url?: string | string[];
+    urls: string[];
     title: string;
 }
 
@@ -53,12 +54,14 @@ export interface StoryOption {
     images: StoryImage[];
     loop: Loop[];
     showWhen: Condition[];
+    conditions?: Condition[]; // Backward compatibility
 }
 
 
 export interface Image {
     conditions: Condition[];
-    url: string[];
+    url?: string | string[];
+    urls: string[];
     title: string;
 }
 

@@ -188,9 +188,9 @@ export function useGameLogic(storyIdParam: string | null) {
                     const results = item.conditions.map((child: any) => evaluateItem(child));
 
                     if (item.logic === 'OR') {
-                        return results.some(r => r); // At least one true
+                        return results.some((r: boolean) => r); // At least one true
                     } else {
-                        return results.every(r => r); // All true (AND)
+                        return results.every((r: boolean) => r); // All true (AND)
                     }
                 }
 

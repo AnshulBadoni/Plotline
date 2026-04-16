@@ -20,12 +20,13 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ node, onUpdate, onDelete }) => 
 
   useEffect(() => {
     if (node) {
+      const data = node.data as any;
       setFormData({
-        label: node.data.label || '',
-        text: (node.data as StoryNodeData).text || '',
-        character: node.data.character || '',
-        background: node.data.background || '',
-        choices: (node.data as ChoiceNodeData).choices || [],
+        label: data.label || '',
+        text: data.text || '',
+        character: data.character || '',
+        background: data.background || '',
+        choices: data.choices || [],
       });
     }
   }, [node]);
@@ -34,7 +35,7 @@ const NodeEditor: React.FC<NodeEditorProps> = ({ node, onUpdate, onDelete }) => 
     const newData = { ...formData, [field]: value };
     setFormData(newData);
     if (node) {
-      onUpdate(node.id, newData);
+      onUpdate(node.id, newData as any);
     }
   };
 
