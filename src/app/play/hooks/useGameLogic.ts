@@ -352,15 +352,40 @@ export function useGameLogic(storyIdParam: string | null) {
         return getRandomDialogues(currentStory.dialogueBlocks || []);
     }, [state, currentStory, getRandomDialogues]);
 
+    // ✅ UPDATED: Filter options based on visibility conditions
     const availableOptions = useMemo(() => {
         if (!currentStory?.options) return [];
-        const usedOptionsSet = state.usedOptions instanceof Set ? state.usedOptions : new Set(state.usedOptions);
-        return currentStory.options.filter(
-            (opt) =>
-                opt.option?.trim() &&
-                checkConditions(opt.showWhen || []) &&
-                !usedOptionsSet.has(opt.option)
-        );
+
+        const usedOptionsSet = state.usedOptions instanceof Set
+            ? state.usedOptions
+            : new Set(state.usedOptions);
+
+        const filtered = currentStory.options.filter((opt) => {
+            // Must have text
+            if (!opt.option?.trim()) {
+                return false;
+            }
+
+            // Must not be used (unless it can loop)
+            if (usedOptionsSet.has(opt.option)) {
+                return false;
+            }
+
+            // Check visibility conditions (primary field)
+            // Support both 'conditions' (new) and 'showWhen' (legacy) for backward compatibility
+            const visibilityConditions = opt.conditions || opt.showWhen || [];
+            const meetsConditions = checkConditions(visibilityConditions);
+
+            if (!meetsConditions) {
+                console.log(`🔒 Option "${opt.option}" hidden (conditions not met):`, visibilityConditions);
+            }
+
+            return meetsConditions;
+        });
+
+        console.log(`📋 Available options: ${filtered.length}/${currentStory.options.length}`);
+
+        return filtered;
     }, [currentStory, checkConditions, state.usedOptions]);
 
     // ✅ Save full snapshot to history

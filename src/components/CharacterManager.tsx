@@ -127,7 +127,7 @@ const CharacterManager: React.FC = () => {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 text-xs bg-purple-600 hover:bg-purple-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all"
+                className="flex items-center gap-2 text-xs bg-neutral-800 hover:bg-purple-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all"
             >
                 <Users className="w-4 h-4" />
                 Characters ({characters.length})

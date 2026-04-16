@@ -10,7 +10,7 @@ export default function Background({ imageUrl, isVideo }: { imageUrl?: string; i
             ) : (
                 <img src={imageUrl} alt="Scene background" className="w-full h-full object-cover" />
             )}
-            <div className="absolute inset-0 bg-linear-to-t from-zinc-950 via-zinc-950/80 to-zinc-950/60" />
+            {/* <div className="absolute inset-0 bg-linear-to-t from-zinc-950/10 via-zinc-950/20 to-zinc-950/10" /> */}
         </div>
     );
 }
