@@ -1,8 +1,7 @@
-// src/app/play/page.tsx
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
 // Import the real hook — no wrappers!
 import { useStoryManagement } from '@/store/storyManagement';
@@ -18,7 +17,7 @@ import ErrorScreen from './components/ErrorScreen';
 // Hook
 import { useGameLogic } from './hooks/useGameLogic';
 
-export default function VisualNovelPlayer() {
+function PlayPageContent() {
     const searchParams = useSearchParams();
     const storyIdParam = searchParams?.get('story');
 
@@ -101,5 +100,13 @@ export default function VisualNovelPlayer() {
                 />
             )}
         </div>
+    );
+}
+
+export default function VisualNovelPlayer() {
+    return (
+        <Suspense fallback={<LoadingScreen type="loading" />}>
+            <PlayPageContent />
+        </Suspense>
     );
 }
