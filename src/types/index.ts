@@ -41,7 +41,8 @@ export interface Dialogue {
 
 export interface StoryImage {
     conditions: Condition[];
-    url: string[];
+    url?: string | string[];
+    urls: string[];
     title: string;
 }
 
@@ -53,12 +54,14 @@ export interface StoryOption {
     images: StoryImage[];
     loop: Loop[];
     showWhen: Condition[];
+    conditions?: Condition[]; // Backward compatibility
 }
 
 
 export interface Image {
     conditions: Condition[];
-    url: string[];
+    url?: string | string[];
+    urls: string[];
     title: string;
 }
 
@@ -77,6 +80,7 @@ export interface Option {
     option: string;
     nextPieceId: number;
     effects: Effect[];
+    conditions: Condition[];
     dialogueBlocks: DialogueBlock[];
     images: Image[];
     loop: Loop[] | null;

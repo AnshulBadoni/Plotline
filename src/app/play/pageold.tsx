@@ -180,7 +180,7 @@ export default function VisualNovelPlayer() {
         currentOptionDialogueIndex: 0,
         characterStats: {},
         selectedImageUrls: [],
-        usedOptions: new Set(),
+        usedOptions: new Set<string>(),
         suppressDefaultDialogue: false,
         storyRandom: 0,
     });
@@ -237,7 +237,7 @@ export default function VisualNovelPlayer() {
     }, [story, state.currentStoryId]);
 
     const checkConditions = useCallback(
-        (conditions: Condition[]): boolean => {
+        (conditions: any[]): boolean => {
             if (!conditions?.length) return true;
 
             return conditions.every((condition) => {

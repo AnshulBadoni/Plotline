@@ -22,7 +22,7 @@ const ChoiceNode: React.FC<NodeProps<ChoiceNodeData>> = ({ data, selected }) => 
 
             <div className="p-4">
                 <div className="flex flex-col gap-2">
-                    {data.choices?.map(({ choice, idx }) => (
+                    {data.choices?.map((choice, idx) => (
                         <div
                             key={idx}
                             className="bg-gray-50 px-3 py-2 rounded border-l-3 border-l-orange-500 text-sm text-gray-600"

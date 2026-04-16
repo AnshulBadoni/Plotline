@@ -1,4 +1,3 @@
-// src/components/AdvancedNodeEditor.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -53,7 +52,7 @@ const CollapsibleCard: React.FC<{
                     {dragHandle}
                     <div className="flex items-center gap-2">
                         <svg
-                            className={`w-4 h-4 text-neutral-500 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                            className={`w-4 h-4 text-neutral-200 transition-transform ${isOpen ? 'rotate-90' : ''}`}
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -62,7 +61,7 @@ const CollapsibleCard: React.FC<{
                         </svg>
                         <span className="text-sm font-medium text-white">{title}</span>
                         {count !== undefined && (
-                            <span className="text-xs text-neutral-500">({count})</span>
+                            <span className="text-xs text-neutral-200">({count})</span>
                         )}
                     </div>
                 </div>
@@ -72,7 +71,7 @@ const CollapsibleCard: React.FC<{
                             e.stopPropagation();
                             onRemove();
                         }}
-                        className="text-xs text-neutral-500 hover:text-white transition-colors"
+                        className="text-xs text-neutral-200 hover:text-white transition-colors"
                     >
                         Remove
                     </button>
@@ -255,6 +254,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
             option: '',
             nextPieceId: -1,
             effects: [],
+            conditions: [],
             dialogueBlocks: [],
             images: [],
             loop: null,
@@ -394,7 +394,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => setIsFullscreen(!isFullscreen)}
-                        className="h-8 w-8 flex items-center justify-center border border-neutral-800 hover:bg-neutral-900 text-neutral-500 hover:text-white transition-colors rounded"
+                        className="h-8 w-8 flex items-center justify-center border border-neutral-800 hover:bg-neutral-900 text-neutral-100 hover:text-white transition-colors rounded"
                     >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             {isFullscreen ? (
@@ -406,7 +406,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                     </button>
                     <button
                         onClick={onDelete}
-                        className="h-8 px-3 flex items-center justify-center border border-neutral-800 hover:border-neutral-700 text-neutral-500 hover:text-white transition-colors rounded text-xs"
+                        className="h-8 px-3 flex items-center justify-center bg-red-600 hover:bg-red-800 text-red-100 hover:text-white transition-colors rounded text-xs"
                     >
                         Delete
                     </button>
@@ -437,17 +437,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                     {activeTab === 'basic' && (
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-xs text-neutral-500">Node ID</label>
-                                <input
-                                    type="text"
-                                    value={formData.id}
-                                    disabled
-                                    className="w-full h-9 px-3 bg-neutral-900 border border-neutral-800 rounded text-sm text-neutral-600 cursor-not-allowed"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs text-neutral-500">Title</label>
+                                <label className="text-xs text-neutral-200">Title</label>
                                 <input
                                     type="text"
                                     value={formData.title}
@@ -458,7 +448,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs text-neutral-500">Default Next Node</label>
+                                <label className="text-xs text-neutral-200">Default Next Node</label>
                                 <select
                                     value={formData.nextStoryPiece}
                                     onChange={(e) => handleChange('nextStoryPiece', Number(e.target.value))}
@@ -504,7 +494,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                 >
                                                     <div className="space-y-3">
                                                         <div>
-                                                            <label className="text-xs text-neutral-500 mb-2 block">Conditions</label>
+                                                            <label className="text-xs text-neutral-200 mb-2 block">Conditions</label>
                                                             <AdvanceConditionEditor
                                                                 conditions={block.conditions}
                                                                 onChange={(conditions) =>
@@ -587,7 +577,6 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                     )}
 
                     {/* Options Tab */}
-                    {/* Options Tab */}
                     {activeTab === 'options' && (
                         <div className="space-y-3">
                             <button
@@ -607,6 +596,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                         const safeOption = {
                                             ...option,
                                             effects: option.effects || [],
+                                            conditions: option.conditions || [],
                                             dialogueBlocks: option.dialogueBlocks || [],
                                             images: option.images || [],
                                             loop: option.loop || null,
@@ -623,7 +613,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                         <div className="space-y-3">
                                                             <div className="grid grid-cols-2 gap-3">
                                                                 <div className="space-y-2">
-                                                                    <label className="text-xs text-neutral-500">Text</label>
+                                                                    <label className="text-xs text-neutral-200">Text</label>
                                                                     <input
                                                                         type="text"
                                                                         value={safeOption.option}
@@ -636,7 +626,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                 </div>
 
                                                                 <div className="space-y-2">
-                                                                    <label className="text-xs text-neutral-500">Next Node</label>
+                                                                    <label className="text-xs text-neutral-200">Next Node</label>
                                                                     <select
                                                                         value={safeOption.nextPieceId}
                                                                         onChange={(e) =>
@@ -656,6 +646,21 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                     </select>
                                                                 </div>
                                                             </div>
+
+                                                            {/* ✨ NEW: Visibility Conditions */}
+                                                            <CollapsibleCard title="🔒 Visibility Conditions" count={safeOption.conditions.length}>
+                                                                <div className="space-y-2">
+                                                                    <div className="p-2 bg-blue-950/30 border border-blue-900/50 rounded">
+                                                                        <p className="text-xs text-blue-400">
+                                                                            <span className="font-semibold">ℹ️ Info:</span> This option will only be shown if these conditions are met.
+                                                                        </p>
+                                                                    </div>
+                                                                    <AdvanceConditionEditor
+                                                                        conditions={safeOption.conditions}
+                                                                        onChange={(conditions) => updateOption(optIdx, { ...safeOption, conditions })}
+                                                                    />
+                                                                </div>
+                                                            </CollapsibleCard>
 
                                                             <CollapsibleCard title="Effects" count={safeOption.effects.length}>
                                                                 <EffectEditor
@@ -812,7 +817,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                                             + Add
                                                                                         </button>
                                                                                     </div>
-                                                                                    {safeImage.urls.map(({url, urlIdx}: { url: string; urlIdx: number }) => (
+                                                                                    {safeImage.urls.map((url, urlIdx) => (
                                                                                         <div key={urlIdx} className="flex gap-1">
                                                                                             <input
                                                                                                 type="text"
@@ -941,7 +946,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
 
                                                                 {/* Title */}
                                                                 <div className="space-y-2">
-                                                                    <label className="text-xs text-neutral-500">Title</label>
+                                                                    <label className="text-xs text-neutral-200">Title</label>
                                                                     <input
                                                                         type="text"
                                                                         value={safeImage.title}
@@ -956,7 +961,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                 {/* URL Variants */}
                                                                 <div className="space-y-2">
                                                                     <div className="flex items-center justify-between">
-                                                                        <label className="text-xs text-neutral-500">
+                                                                        <label className="text-xs text-neutral-200">
                                                                             URL Variants {hasMultipleUrls && '(Random)'}
                                                                         </label>
                                                                         <button
@@ -998,7 +1003,7 @@ const AdvancedNodeEditor: React.FC<AdvancedNodeEditorProps> = ({
                                                                                             const newUrls = safeImage.urls.filter((_, i) => i !== urlIdx);
                                                                                             updateImage(idx, { ...safeImage, urls: newUrls });
                                                                                         }}
-                                                                                        className="h-8 w-8 flex items-center justify-center bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded text-neutral-500 hover:text-white transition-colors"
+                                                                                        className="h-8 w-8 flex items-center justify-center bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded text-neutral-200 hover:text-white transition-colors"
                                                                                         title="Remove variant"
                                                                                     >
                                                                                         ×
