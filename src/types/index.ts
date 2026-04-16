@@ -54,7 +54,7 @@ export interface StoryOption {
     images: StoryImage[];
     loop: Loop[];
     showWhen: Condition[];
-    conditions?: Condition[]; // Backward compatibility
+    conditions?: Condition[];
 }
 
 
